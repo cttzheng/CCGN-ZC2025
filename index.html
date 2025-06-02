@@ -1,105 +1,169 @@
 <!DOCTYPE html>
-<html>
+<html lang="nl">
 <head>
-  <title>Coordinate Puzzle Game</title>
-  <meta charset="utf-8" />
-  <style>
-    #map { height: 400px; width: 100%; }
-    body { font-family: Arial; margin: 20px; }
-    input { margin: 5px; }
-    #message { margin-top: 10px; font-weight: bold; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Introspel Kaart</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Fredoka', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f0f4f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    header {
+      background-color: #3b82f6;
+      color: white;
+      width: 100%;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .container {
+      margin: 20px;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.05);
+      max-width: 1000px;
+      width: 90%;
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #1e3a8a;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      width: 70%;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-right: 10px;
+    }
+
+    button {
+      padding: 10px 16px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    #message {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #111827;
+    }
+
+    .map-and-image {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    #map {
+      flex: 1 1 60%;
+      height: 500px;
+      border-radius: 12px;
+    }
+
+    .map-image {
+      flex: 1 1 35%;
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+  </style>
 </head>
 <body>
 
-<h2>Answer the challenge question</h2>
-Answer (number): <input id="answer" type="text" placeholder="e.g. 1">
-<button onclick="submitAnswer()">Submit</button>
-<button onclick="getLocation()">📍 Show My Location</button>
+  <header>
+    <h1>Introspel: Locatie Vinder</h1>
+    <p class="subtitle">Los de raadsels op en ontdek de juiste locaties! LET OP: Als je woorden invoert, graag dit doen in HOOFDLETTERS.
+    De kaart is soms misschien een beetje moeilijk te lezen. Daarom is er onder de kaart een satelliet foto van Google Maps geplaatst. Gebruik dit ter referentie.</p>
+  </header>
 
-<div id="message"></div>
-<div id="map"></div>
+  <div class="container">
+    <h2>Los de raadsels op en voer ze hieronder in</h2>
+    <input id="answer" type="text" placeholder="Typ hier het antwoord in (woorden altijd in HOOFDLETTERS)">
+    <button onclick="submitAnswer()">Bevestigen</button>
+    <div id="message"></div>
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script>
-  const challenges = {
-    1: { lat: 51.34237252135116, lng: 6.110545230490991, task: "Task 1: Find the object near the first point." },
-    2: { lat: 51.34241685183157, lng: 6.112539059710595, task: "Task 2: Look for something red." },
-    3: { lat: 51.34242529572773, lng: 6.111508351385206, task: "Task 3: Count the steps here." },
-    4: { lat: 51.34235141158354, lng: 6.111183931715576, task: "Task 4: Take a group photo." },
-    5: { lat: 51.34233030180616, lng: 6.1110791711972565, task: "Task 5: Check what’s written on the sign." }
-  };
+    <div class="map-and-image">
+      <div id="map"></div>
+      <img src="GoogleMapsView.png" alt="Afbeelding bij de locatie" class="map-image">
+    </div>
+  </div>
 
-  const map = L.map('map').setView([51.3423, 6.1110], 18);
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const challenges = {
+      "175": { lat: 51.34392675336309, lng: 6.114235875389502, task: "Locatie 1: Ga naar het grasveld voorbij de parkeerplaatsen en naast het grote grasveld." },
+      "2120": { lat: 51.34375921044556, lng: 6.112355646904349, task: "Locatie 2: Ga naar het grasveld naast het gebouw met de eetzaal (kijk naar plaatje beneden voor betere inschatting)." },
+      "VERENIGEN": { lat: 51.34327165706201, lng: 6.112803575789327, task: "Locatie 3: Ga naar het terras naast het vijvertje." },
+      "90": { lat: 51.343497842262856, lng: 6.113050339009021, task: "Locatie 4: Ga naar de zaal Verlichting (hier heeft de groep van 11-14 jaar les)." },
+      "VERBOND": { lat: 51.343387262974005, lng: 6.11423587538761, task: "Locatie 5: Ga naar het veldje waar sport en spel altijd gehouden wordt." },
+      "10586": { lat: 51.34341407009869, lng: 6.113448647059986, task: "Locatie 6: Ga terug naar de Maaszaal en maak je puzzel af." }
+    };
+    const map = L.map('map').setView([51.34342157563757, 6.113109868478286], 20);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
+    let marker;
 
-  let marker;
-  let userMarker;
+    function submitAnswer() {
+      const inputField = document.getElementById('answer');
+      const submitBtn = document.querySelector('button[onclick="submitAnswer()"]');
+      const input = inputField.value.trim().toUpperCase();
+      const challenge = challenges[input];
 
-  function submitAnswer() {
-  const inputField = document.getElementById('answer');
-  const submitBtn = document.querySelector('button[onclick="submitAnswer()"]');
-  const input = parseInt(inputField.value);
-  const challenge = challenges[input];
+      if (challenge) {
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([challenge.lat, challenge.lng]).addTo(map)
+          .bindPopup("🎯 " + challenge.task).openPopup();
+        map.setView([challenge.lat, challenge.lng], 20);
+        document.getElementById("message").innerText = "✅ Goed gedaan! Ga naar de locatie.";
+      } else {
+        document.getElementById("message").innerText = "❌ Verkeerd antwoord. Wacht 15 seconden...";
 
-  if (challenge) {
-    if (marker) map.removeLayer(marker);
-    marker = L.marker([challenge.lat, challenge.lng]).addTo(map)
-      .bindPopup("🎯 " + challenge.task).openPopup();
-    map.setView([challenge.lat, challenge.lng], 20);
-    document.getElementById("message").innerText = "✅ Correct! Task unlocked.";
-  } else {
-    document.getElementById("message").innerText = "❌ Incorrect answer. Please wait 30 seconds...";
-    
-    // Disable input and button
-    inputField.disabled = true;
-    submitBtn.disabled = true;
+        inputField.disabled = true;
+        submitBtn.disabled = true;
 
-    let countdown = 30;
-    const originalText = document.getElementById("message").innerText;
-
-    const interval = setInterval(() => {
-      countdown--;
-      document.getElementById("message").innerText = `⏳ Wait ${countdown} seconds...`;
-      if (countdown <= 0) {
-        clearInterval(interval);
-        inputField.disabled = false;
-        submitBtn.disabled = false;
-        document.getElementById("message").innerText = "❗ You can try again now.";
+        let countdown = 15;
+        const interval = setInterval(() => {
+          countdown--;
+          document.getElementById("message").innerText = `⏳ Verkeerd antwoord. Wacht ${countdown} seconden...`;
+          if (countdown <= 0) {
+            clearInterval(interval);
+            inputField.disabled = false;
+            submitBtn.disabled = false;
+            document.getElementById("message").innerText = "❗ Je kunt het opnieuw proberen.";
+          }
+        }, 1000);
       }
-    }, 1000);
-  }
-}
-
-
-  function getLocation() {
-    if (!navigator.geolocation) {
-      document.getElementById("message").innerText = "❌ Geolocation not supported.";
-      return;
     }
-
-    navigator.geolocation.getCurrentPosition(position => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-
-      if (userMarker) map.removeLayer(userMarker);
-      userMarker = L.marker([lat, lng], { title: "You are here" })
-        .addTo(map)
-        .bindPopup("📍 Your Location")
-        .openPopup();
-
-      map.setView([lat, lng], 19);
-      document.getElementById("message").innerText = "📍 Your location is shown on the map.";
-    }, () => {
-      document.getElementById("message").innerText = "❌ Couldn't get your location.";
-    });
-  }
-</script>
+  </script>
 
 </body>
 </html>
+
 
