@@ -97,7 +97,7 @@
 
   <header>
     <h1>Introspel: Locatie Vinder</h1>
-    <p class="subtitle">Los de raadsels op en ontdek de juiste locaties! LET OP: Als je woorden invoert, graag dit doen in HOOFDLETTERS.
+    <p class="subtitle">Los de raadsels op en ontdek de juiste locaties!
     De kaart is soms misschien een beetje moeilijk te lezen. Daarom is er onder de kaart een satelliet foto van Google Maps geplaatst. Gebruik dit ter referentie.</p>
   </header>
 
@@ -115,14 +115,15 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    const challenges = {
-      "175": { lat: 51.34392675336309, lng: 6.114235875389502, task: "Locatie 1: Ga naar het grasveld voorbij de parkeerplaatsen en naast het grote grasveld." },
-      "2120": { lat: 51.34375921044556, lng: 6.112355646904349, task: "Locatie 2: Ga naar het grasveld naast het gebouw met de eetzaal (kijk naar plaatje beneden voor betere inschatting)." },
-      "VERENIGEN": { lat: 51.34327165706201, lng: 6.112803575789327, task: "Locatie 3: Ga naar het terras naast het vijvertje." },
-      "90": { lat: 51.343497842262856, lng: 6.113050339009021, task: "Locatie 4: Ga naar de zaal Verlichting (hier heeft de groep van 11-14 jaar les)." },
-      "VERBOND": { lat: 51.343387262974005, lng: 6.11423587538761, task: "Locatie 5: Ga naar het veldje waar sport en spel altijd gehouden wordt." },
-      "10586": { lat: 51.34341407009869, lng: 6.113448647059986, task: "Locatie 6: Ga terug naar de Maaszaal en maak je puzzel af." }
+    const encodedChallenges = {
+      "MTc1": { lat: "NTEuMzQzOTI2NzUzMzYzMDk=", lng: "Ni4xMTQyMzU4NzUzODk1MDI=", task: "TG9jYXRpZSAxOiBHYSBuYWFyIGhldCBncmFzdmVsZCB2b29yYmlqIGRlIHBhcmtlZXJwbGFhdHNlbiBlbiBuYWFzdCBoZXQgZ3JvdGUgZ3Jhc3ZlbGQu" },
+      "MjEyMA==": { lat: "NTEuMzQzNzU5MjEwNDQ1NTY=", lng: "Ni4xMTIzNTU2NDY5MDQzNDk=", task: "TG9jYXRpZSAyOiBHYSBuYWFyIGhldCBncmFzdmVsZCBuYWFzdCBoZXQgZ2VidW93IG1ldCBkZSBldGV6YWFsICgga2lqIG5hYXIgcGxhYXRqZSBiZW5lZGVuIGZvb3IgYmV0ZXJlIGluc2NoYXR0aW5nKS4=" },
+      "VkVSRU5JR0VO": { lat: "NTEuMzQzMjcxNjU3MDYyMDE=", lng: "Ni4xMTI4MDM1NzU3ODkzMjc=", task: "TG9jYXRpZSAzOiBHYSBuYWFyIGhldCB0ZXJyYXMgbmFhc3QgaGV0IHZpamVydGplLg==" },
+      "OTA=": { lat: "NTEuMzQzNDk3ODQyMjYyODU2", lng: "Ni4xMTMwNTAzMzkwMDkwMjE=", task: "TG9jYXRpZSA0OiBHYSBuYWFyIGRlIHphYWwgVmVybGljaHRpbmcgKGhpZXIgaGVlZnQgZGUgZ3JvZXAgdmFuIDExLTE0IGphYXIgbGVzKS4=" },
+      "VkVSQk9ORA==": { lat: "NTEuMzQzMzg3MjYyOTc0MDA1", lng: "Ni4xMTQyMzU4NzUzODc2MQ==", task: "TG9jYXRpZSA1OiBHYSBuYWFyIGhldCB2ZWxkamUgd2FhciBzcG9ydCBlbiBzcGVsIGFsdGlqZCBnZWhvdWRlbiB3b3JkLg==" },
+      "MTA1ODY=": { lat: "NTEuMzQzNDE0MDcwMDk4Njk=", lng: "Ni4xMTM0NDg2NDcwNTk5ODY=", task: "TG9jYXRpZSA2OiBHYSB0ZXJ1ZyBuYWFyIGRlIE1hYXN6YWFsIGVuIG1hYWsgamUgcnV6emVsIGFmLg==" }
     };
+
     const map = L.map('map').setView([51.34342157563757, 6.113109868478286], 20);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
@@ -134,17 +135,20 @@
       const inputField = document.getElementById('answer');
       const submitBtn = document.querySelector('button[onclick="submitAnswer()"]');
       const input = inputField.value.trim().toUpperCase();
-      const challenge = challenges[input];
+      const encodedInput = btoa(input); // encode input to Base64
+      const challenge = encodedChallenges[encodedInput];
 
       if (challenge) {
         if (marker) map.removeLayer(marker);
-        marker = L.marker([challenge.lat, challenge.lng]).addTo(map)
-          .bindPopup("🎯 " + challenge.task).openPopup();
-        map.setView([challenge.lat, challenge.lng], 20);
+        const lat = parseFloat(atob(challenge.lat));
+        const lng = parseFloat(atob(challenge.lng));
+        const task = atob(challenge.task);
+        marker = L.marker([lat, lng]).addTo(map)
+          .bindPopup("🎯 " + task).openPopup();
+        map.setView([lat, lng], 20);
         document.getElementById("message").innerText = "✅ Goed gedaan! Ga naar de locatie.";
       } else {
         document.getElementById("message").innerText = "❌ Verkeerd antwoord. Wacht 15 seconden...";
-
         inputField.disabled = true;
         submitBtn.disabled = true;
 
